@@ -13,6 +13,38 @@ namespace Onesimus\Logger\Adaptors;
 
 class EchoAdaptor implements AdaptorInterface
 {
+    protected $echoString = "Log Level: {level}\nMessage: {message}\n\n";
+
+    public function __construct($echoStr = '')
+    {
+        if ($echoStr) {
+            $this->echoString = $echoStr;
+        }
+    }
+
+    /**
+     * Set the echo string
+     *
+     * @param string $echoStr Echo pattern with placeholders:
+     *                        {level} replaced with the log level
+     *                        {levelU} replaced with uppercase log level
+     *                        {message} replaced with the log message
+     */
+    public function setEchoString($echoStr)
+    {
+        $this->echoString = $echoStr;
+    }
+
+    /**
+     * Retreive current echo string pattern
+     *
+     * @return string
+     */
+    public function getEchoString()
+    {
+        return $this->echoString;
+    }
+
     /**
      * Echo logs to the ether
      *
@@ -23,6 +55,12 @@ class EchoAdaptor implements AdaptorInterface
      */
     public function write($level, $message, array $context = array())
     {
-        echo "Log Level: $level\nMessage: $message\n\n";
+        $replacements = array(
+            '{level}' => $level,
+            '{levelU}' => strtoupper($level),
+            '{message}' => $message,
+            '{date}' => date(DATE_RFC2822)
+        );
+        echo strtr($this->echoString, $replacements);
     }
 }
