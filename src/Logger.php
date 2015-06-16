@@ -25,7 +25,7 @@ class Logger implements LoggerInterface
     public function __construct(Adaptors\AdaptorInterface $adaptor = null)
     {
         if (!$adaptor) {
-            $adaptor = new Adaptors\DummyAdaptor();
+            $adaptor = new Adaptors\NullAdaptor();
         }
         $this->adaptors = [$adaptor];
     }
