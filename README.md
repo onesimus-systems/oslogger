@@ -24,7 +24,16 @@ $logger->error("Here's a message with {placeholders}", array('placeholders' => '
 // per PSR3 spec.
 ```
 
-If you don't want to actually log anything but don't want to add conditional logging to your application, you can use a NullAdaptor or simple not provide an adaptor to the Logger constructor.
+If you don't want to actually log anything but don't want to add conditional logging to your application, you can use a NullAdaptor or simple not provide an adaptor to the Logger constructor (a NullAdaptor is made by the class at construction if one isn't provided).
+
+Multiple adaptors can be added to the same logger by calling `Logger::addAdaptor($adaptor)`:
+
+```php
+$adaptor2 = new \Onesimus\Logger\Adaptors\EchoAdaptor();
+$logger->addAdaptor($adaptor2);
+```
+
+When a log is generated it will be sent to all registered logging destinations. So you can have multiple FileAdaptors logging to separate places, a FileAdaptor and database adaptor, what ever you want.
 
 Special Handlers
 ----------------
@@ -54,6 +63,16 @@ EchoAdaptor
 
 Echo all messages. That's all.
 
+- `setEchoString($string)` - Sets the template used to echo log messages. Use the placeholders {message}, {level}, and {levelU} (uppercase level) to place the appropiate pieces.
+- `getEchoString()` - Returns the currently assigned echo template.
+
+ConsoleAdaptor
+--------------
+
+Fancier version of EchoAdaptor that echos logs with color and better default formatting
+
+- `setTextColor($levels, $color)` - Set the color used for the level tag in logs. Color codes can be accessed through the Logger\AsciiCodes class. $levels can be either a string for a single log level, or an array of levels.
+
 FileAdaptor
 -----------
 
@@ -67,7 +86,7 @@ Saves logs to files.
 License
 -------
 
-OSLogger is release under the terms of the BSD 3-Clause license. The full license text is available in the LICENSE.md file.
+OSLogger is released under the terms of the BSD 3-Clause license. The full license text is available in the LICENSE.md file.
 
 Versioning
 ----------
