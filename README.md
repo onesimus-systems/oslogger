@@ -38,7 +38,7 @@ When a log is generated it will be sent to all registered logging destinations. 
 Special Handlers
 ----------------
 
-Logger comes with builtin handlers for PHP errors, shutdowns, and uncaught exceptions. If you wish to use any of these, call the methods `registerErrorHandler()`, `registerShutdownHandler()`, or `registerExceptionHandler()`. You may use all or non and of course you can use your own handlers by call the appropiate PHP functions. The handlers will take the errors or exceptions and log them using an appropiate log level.
+Logger comes with builtin handlers for PHP errors, shutdowns (only does something if error_get_last() returns anything), and uncaught exceptions. If you wish to use any of these, call the methods `registerErrorHandler()`, `registerShutdownHandler()`, or `registerExceptionHandler()`. You may use all or non and of course you can use your own handlers by call the appropiate PHP functions. The handlers will take the errors or exceptions and log them using an appropiate log level.
 
 Handler log levels:
 
@@ -49,6 +49,8 @@ Handler log levels:
     - E_USER_WARNING, E_WARNING are `warning`
     - E_USER_NOTICE, E_NOTICE are `notice`
     - E_STRICT are `debug`
+
+Note: The shutdown handler will only do something if the function error_get_last() returns anything. The handler does not call exit() or die() so you can register another shutdown handler.
 
 Adaptors (\Onesimus\Logger\Adaptors)
 --------

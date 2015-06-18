@@ -238,13 +238,14 @@ class Logger implements LoggerInterface
     public function PHPShutdownHandler()
     {
         session_write_close();
-        $lasterror = error_get_last();
-        $message = $lasterror['message'] . ' | File: {file} | Ln: {line}';
-        $context = array(
-            'file' => $lasterror['file'],
-            'line' => $lasterror['line']
-        );
-        $this->critical($message, $context);
+        if ($lasterror = error_get_last()) {
+            $message = $lasterror['message'] . ' | File: {file} | Ln: {line}';
+            $context = array(
+                'file' => $lasterror['file'],
+                'line' => $lasterror['line']
+            );
+            $this->critical($message, $context);
+        }
     }
 
     /**
