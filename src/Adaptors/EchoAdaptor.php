@@ -11,15 +11,24 @@
  */
 namespace Onesimus\Logger\Adaptors;
 
-class EchoAdaptor implements AdaptorInterface
-{
-    protected $echoString = "Log Level: {level}\nMessage: {message}\n\n";
+use \Psr\Log\LogLevel;
 
-    public function __construct($echoStr = '')
+class EchoAdaptor extends AbstractAdaptor
+{
+    protected $echoString = "{date} [{level}] Message: {message}\n";
+
+    /**
+     * Constructor
+     *
+     * @param string $level   Minimum handled log level
+     * @param string $echoStr Echo pattern
+     */
+    public function __construct($level = LogLevel::DEBUG, $echoStr = '')
     {
         if ($echoStr) {
             $this->echoString = $echoStr;
         }
+        $this->setLevel($level);
     }
 
     /**
@@ -29,6 +38,7 @@ class EchoAdaptor implements AdaptorInterface
      *                        {level} replaced with the log level
      *                        {levelU} replaced with uppercase log level
      *                        {message} replaced with the log message
+     *                        {date} replaced with the date in $this->dateFormat format
      */
     public function setEchoString($echoStr)
     {
@@ -59,8 +69,10 @@ class EchoAdaptor implements AdaptorInterface
             '{level}' => $level,
             '{levelU}' => strtoupper($level),
             '{message}' => $message,
-            '{date}' => date(DATE_RFC2822)
+            '{date}' => date($this->dateFormat)
         );
-        echo strtr($this->echoString, $replacements);
+        $log = strtr($this->echoString, $replacements);
+        $this->setLastLogLine($log);
+        echo $log;
     }
 }

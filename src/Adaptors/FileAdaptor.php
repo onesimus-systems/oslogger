@@ -11,26 +11,36 @@
  */
 namespace Onesimus\Logger\Adaptors;
 
-class FileAdaptor implements AdaptorInterface
+use RuntimeException;
+use \Psr\Log\LogLevel;
+
+class FileAdaptor extends AbstractAdaptor
 {
     // File to use if a specific loglevel isn't defined
-    protected $fallbackFile;
+    protected $defaultFile = '';
 
     // Files to use for each log level
     protected $filenameLevels = array(
-        'emergency' => '',
-        'alert' => '',
-        'critical' => '',
-        'error' => '',
-        'warning' => '',
-        'notice' => '',
-        'info' => '',
-        'debug' => ''
+        LogLevel::EMERGENCY => '',
+        LogLevel::ALERT     => '',
+        LogLevel::CRITICAL  => '',
+        LogLevel::ERROR     => '',
+        LogLevel::WARNING   => '',
+        LogLevel::NOTICE    => '',
+        LogLevel::INFO      => '',
+        LogLevel::DEBUG     => ''
     );
 
-    public function __construct($file = '')
+    /**
+     * Constructor
+     *
+     * @param string $file  Default logfile
+     * @param string $level Minimum log level this adaptor handles
+     */
+    public function __construct($file, $level = LogLevel::DEBUG)
     {
         $this->setDefaultFile($file);
+        $this->setLevel($level);
     }
 
     /**
@@ -39,25 +49,33 @@ class FileAdaptor implements AdaptorInterface
      * @param string/array $level Log level(s) that use the given $filename
      * @param string $filename File to write logs
      */
-    public function fileLogLevels($level, $filename)
+    public function setLogLevelFile($level, $filename)
     {
+        $dir = dirname($this->defaultFile);
+
         if (!is_array($level)) {
             $level = [$level];
         }
 
         foreach ($level as $loglevel) {
-            $this->filenameLevels[$loglevel] = $filename;
+            $this->filenameLevels[$loglevel] = $dir.DIRECTORY_SEPARATOR.$filename;
         }
     }
 
-    /**
-     * Disable log levels from being saved
-     *
-     * @param string/array $level Log level(s) to disable
-     */
-    public function disableLogLevels($level)
+    public function getLogLevelFiles()
     {
-        $this->fileLogLevels($level, false);
+        return $this->filenameLevels;
+    }
+
+    /**
+     * Convenience function to make each log level go to a separate file.
+     * It uses the directory name of the current default file.
+     */
+    public function separateLogFiles()
+    {
+        foreach ($this->filenameLevels as $level => $filename) {
+            $this->setLogLevelFile($level, $level.'.txt');
+        }
     }
 
     /**
@@ -67,26 +85,41 @@ class FileAdaptor implements AdaptorInterface
      */
     public function setDefaultFile($file)
     {
-        $this->fallbackFile = $file;
+        $this->defaultFile = $file;
+    }
+
+    public function getDefaultFile()
+    {
+        return $this->defaultFile;
     }
 
     /**
      * Write the logs to a file
      *
-     * @param mixed $level
+     * @param string $level
      * @param string $message
      * @param array $context
      * @return bool
      */
     public function write($level, $message, array $context = array())
     {
-        if ($this->filenameLevels[$level] === false) {
-            return true;
+        $filename = $this->filenameLevels[$level] ?: $this->defaultFile;
+        $message = date($this->dateFormat) . ' | ' . strtoupper($level) . ' | Message: ' . $message.PHP_EOL;
+        $logDir = dirname($filename);
+
+        // Error are suppressed because an Exception will be thrown instead
+        if (!is_dir($logDir)) {
+            if (@mkdir($logDir, 0777, true) === false) {
+                throw new RuntimeException('Failed to create log directory. Please check permissions.');
+            }
         }
 
-        $filename = $this->filenameLevels[$level] ?: $this->fallbackFile;
-        $message = date("Y-m-d H:i:s") . ' | ' . $level . ' | Message: ' . $message.PHP_EOL;
+        if (@file_put_contents($filename, $message, FILE_APPEND | LOCK_EX) === false) {
+            throw new RuntimeException('Failed to write log file. Please check permissions.');
+        }
 
-        return file_put_contents($filename, $message, FILE_APPEND | LOCK_EX);
+        $this->setLastLogLine($message);
+
+        return true;
     }
 }

@@ -12,7 +12,7 @@
  */
 namespace Onesimus\Logger\Adaptors;
 
-class NullAdaptor implements AdaptorInterface
+class NullAdaptor extends AbstractAdaptor
 {
     /**
      * Write logs to the void
@@ -24,6 +24,6 @@ class NullAdaptor implements AdaptorInterface
      */
     public function write($level, $message, array $context = array())
     {
-        // NOOP
+        $this->setLastLogLine($message);
     }
 }

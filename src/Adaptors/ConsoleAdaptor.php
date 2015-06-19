@@ -7,28 +7,35 @@
  *
  * @license BSD 3-Clause
  *
- * ConsoleAdaptor echos logs to stdout with color and pleasent format
+ * ConsoleAdaptor echos logs to stdout with color and pleasant format
  */
 namespace Onesimus\Logger\Adaptors;
 
 use \Onesimus\Logger\AsciiCodes;
 
-class ConsoleAdaptor implements AdaptorInterface
+use \Psr\Log\LogLevel;
+
+class ConsoleAdaptor extends AbstractAdaptor
 {
     protected $templateString = '{date}: {color}{levelU}'.AsciiCodes::RESET_FG_COLOR.": {message}\n";
+
     protected $defaultColor = AsciiCodes::FG_COLOR_WHITE;
+
     protected $levelColors = array(
-        'emergency' => AsciiCodes::FG_COLOR_RED,
-        'alert' => AsciiCodes::FG_COLOR_RED,
-        'critical' => AsciiCodes::FG_COLOR_RED,
-        'error' => AsciiCodes::FG_COLOR_RED,
-        'warning' => AsciiCodes::FG_COLOR_ORANGE,
-        'notice' => AsciiCodes::FG_COLOR_ORANGE,
-        'info' => AsciiCodes::FG_COLOR_CYAN,
-        'debug' => AsciiCodes::FG_COLOR_CYAN
+        LogLevel::EMERGENCY => AsciiCodes::FG_COLOR_RED,
+        LogLevel::ALERT     => AsciiCodes::FG_COLOR_RED,
+        LogLevel::CRITICAL  => AsciiCodes::FG_COLOR_RED,
+        LogLevel::ERROR     => AsciiCodes::FG_COLOR_RED,
+        LogLevel::WARNING   => AsciiCodes::FG_COLOR_ORANGE,
+        LogLevel::NOTICE    => AsciiCodes::FG_COLOR_ORANGE,
+        LogLevel::INFO      => AsciiCodes::FG_COLOR_CYAN,
+        LogLevel::DEBUG     => AsciiCodes::FG_COLOR_CYAN
     );
 
-    public function __construct() {}
+    public function __construct($level = LogLevel::DEBUG)
+    {
+        $this->setLevel($level);
+    }
 
     /**
      * Set the text color for specified log level(s)
@@ -66,9 +73,11 @@ class ConsoleAdaptor implements AdaptorInterface
             '{level}' => $level,
             '{levelU}' => strtoupper($level),
             '{message}' => $message,
-            '{date}' => date('Y-d-m H:i:s T'),
+            '{date}' => date($this->dateFormat),
             '{color}' => $color
         );
-        echo strtr($this->templateString, $replacements);
+        $log = strtr($this->templateString, $replacements);
+        $this->setLastLogLine($log);
+        echo $log;
     }
 }
