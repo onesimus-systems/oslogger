@@ -1,17 +1,14 @@
 <?php
 namespace Onesimus\Logger;
 
-class MockLogger extends Logger
-{
-    public function getAdaptors()
-    {
-        return $this->adaptors;
-    }
-}
-
 class LoggerTest extends \PHPUnit_Framework_TestCase
 {
-    public function testInstanceOf()
+    /*
+     * Most tests will be done with the EchoAdaptor since it's the easiest
+     * to test with. All adaptors have their own tests that are ran as well.
+     */
+
+    public function testImplementsPsr3()
     {
         $logger = new Logger();
         $this->assertInstanceOf('Psr\Log\LoggerInterface', $logger);
@@ -19,7 +16,7 @@ class LoggerTest extends \PHPUnit_Framework_TestCase
 
     public function testNullAdaptorWithEmptyConstructor()
     {
-        $logger = new MockLogger();
+        $logger = new Logger();
         $adaptors = $logger->getAdaptors();
 
         $this->assertEquals(1, count($adaptors));
@@ -28,7 +25,7 @@ class LoggerTest extends \PHPUnit_Framework_TestCase
 
     public function testAddAdditionalAdaptor()
     {
-        $logger = new MockLogger();
+        $logger = new Logger();
         $logger->addAdaptor(new Adaptors\EchoAdaptor());
         $adaptors = $logger->getAdaptors();
 
@@ -39,7 +36,7 @@ class LoggerTest extends \PHPUnit_Framework_TestCase
     public function testEmergancyLevel()
     {
         $this->expectOutputString('emergency: Message contents');
-        $echo = new Adaptors\EchoAdaptor('{level}: {message}');
+        $echo = new Adaptors\EchoAdaptor('debug', '{level}: {message}');
         $logger = new Logger($echo);
         $logger->emergency('Message contents');
     }
@@ -47,7 +44,7 @@ class LoggerTest extends \PHPUnit_Framework_TestCase
     public function testAlertLevel()
     {
         $this->expectOutputString('alert: Message contents');
-        $echo = new Adaptors\EchoAdaptor('{level}: {message}');
+        $echo = new Adaptors\EchoAdaptor('debug', '{level}: {message}');
         $logger = new Logger($echo);
         $logger->alert('Message contents');
     }
@@ -55,7 +52,7 @@ class LoggerTest extends \PHPUnit_Framework_TestCase
     public function testCriticalLevel()
     {
         $this->expectOutputString('critical: Message contents');
-        $echo = new Adaptors\EchoAdaptor('{level}: {message}');
+        $echo = new Adaptors\EchoAdaptor('debug', '{level}: {message}');
         $logger = new Logger($echo);
         $logger->critical('Message contents');
     }
@@ -63,7 +60,7 @@ class LoggerTest extends \PHPUnit_Framework_TestCase
     public function testErrorLevel()
     {
         $this->expectOutputString('error: Message contents');
-        $echo = new Adaptors\EchoAdaptor('{level}: {message}');
+        $echo = new Adaptors\EchoAdaptor('debug', '{level}: {message}');
         $logger = new Logger($echo);
         $logger->error('Message contents');
     }
@@ -71,7 +68,7 @@ class LoggerTest extends \PHPUnit_Framework_TestCase
     public function testWarningLevel()
     {
         $this->expectOutputString('warning: Message contents');
-        $echo = new Adaptors\EchoAdaptor('{level}: {message}');
+        $echo = new Adaptors\EchoAdaptor('debug', '{level}: {message}');
         $logger = new Logger($echo);
         $logger->warning('Message contents');
     }
@@ -79,7 +76,7 @@ class LoggerTest extends \PHPUnit_Framework_TestCase
     public function testNoticeLevel()
     {
         $this->expectOutputString('notice: Message contents');
-        $echo = new Adaptors\EchoAdaptor('{level}: {message}');
+        $echo = new Adaptors\EchoAdaptor('debug', '{level}: {message}');
         $logger = new Logger($echo);
         $logger->notice('Message contents');
     }
@@ -87,7 +84,7 @@ class LoggerTest extends \PHPUnit_Framework_TestCase
     public function testInfoLevel()
     {
         $this->expectOutputString('info: Message contents');
-        $echo = new Adaptors\EchoAdaptor('{level}: {message}');
+        $echo = new Adaptors\EchoAdaptor('debug', '{level}: {message}');
         $logger = new Logger($echo);
         $logger->info('Message contents');
     }
@@ -95,7 +92,7 @@ class LoggerTest extends \PHPUnit_Framework_TestCase
     public function testDebugLevel()
     {
         $this->expectOutputString('debug: Message contents');
-        $echo = new Adaptors\EchoAdaptor('{level}: {message}');
+        $echo = new Adaptors\EchoAdaptor('debug', '{level}: {message}');
         $logger = new Logger($echo);
         $logger->debug('Message contents');
     }
@@ -112,7 +109,7 @@ class LoggerTest extends \PHPUnit_Framework_TestCase
     public function testMessagePlaceholderInterplation()
     {
         $this->expectOutputString('error: Message contents on line 25');
-        $echo = new Adaptors\EchoAdaptor('{level}: {message}');
+        $echo = new Adaptors\EchoAdaptor('debug', '{level}: {message}');
         $logger = new Logger($echo);
         $logger->log('error', 'Message contents on line {line}', array('line' => '25'));
     }
@@ -120,9 +117,10 @@ class LoggerTest extends \PHPUnit_Framework_TestCase
     public function testUncaughtExceptionHandler()
     {
         $this->expectOutputRegex("/critical: [\\w\\s]+\\| File: [\\w\\s\\/\\.]+\\| Ln: \\d+ \\| ST: #\\d (.|\\n)+/");
-        $echo = new Adaptors\EchoAdaptor('{level}: {message}');
+        $echo = new Adaptors\EchoAdaptor('debug', '{level}: {message}');
         $logger = new Logger($echo);
+        $handlers = new ErrorHandler($logger);
         $exception = new \LogicException('Method not defined', 2);
-        $logger->PHPExceptionHandler($exception);
+        $handlers->PHPExceptionHandler($exception);
     }
 }
