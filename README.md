@@ -38,7 +38,7 @@ When a log is generated it will be sent to all registered logging destinations. 
 Special Handlers
 ----------------
 
-Logger comes with builtin handlers for PHP errors, shutdowns (only does something if error_get_last() returns anything), and uncaught exceptions. If you wish to use any of these, call the methods `registerErrorHandler()`, `registerShutdownHandler()`, or `registerExceptionHandler()`. You may use all or non and of course you can use your own handlers by call the appropiate PHP functions. The handlers will take the errors or exceptions and log them using an appropiate log level.
+OSLogger comes with builtin handlers for PHP errors, shutdowns (only does something if error_get_last() returns anything), and uncaught exceptions. If you wish to use any of these, create a new `Logger\ErrorHandler` object and call the methods `registerErrorHandler()`, `registerShutdownHandler()`, or `registerExceptionHandler()` and pass in a Logger object. You may use all or non and of course you can use your own handlers by call the appropiate PHP functions. The handlers will take the errors or exceptions and log them using an appropiate log level.
 
 Handler log levels:
 
@@ -53,7 +53,17 @@ Handler log levels:
 Note: The shutdown handler will only do something if the function error_get_last() returns anything. The handler does not call exit() or die() so you can register another shutdown handler.
 
 Adaptors (\Onesimus\Logger\Adaptors)
---------
+------------------------------------
+
+All Adaptors
+------------
+
+- `isHandling($level)` - Check if the adaptor handles logs at the given level.
+- `setLevel($level = LogLevel::DEBUG)` - Set the minimum level handled by the adaptor.
+- `setDateFormat($format)` - Set the date format used in logs.
+- `getDateFormat()` - Get the date format used in logs.
+- `restoreDateFormat()` - Sets date format to the default "Y-m-d H:i:s T".
+- `getLastLogLine()` - Returns last log line written.
 
 NullAdaptor
 -----------
@@ -65,6 +75,8 @@ EchoAdaptor
 
 Echo all messages. That's all.
 
+- `__construct($minimumLevel = LogLevel::DEBUG, $echoStr = "{date} [{level}] Message: {message}\n")`
+
 - `setEchoString($string)` - Sets the template used to echo log messages. Use the placeholders {message}, {level}, and {levelU} (uppercase level) to place the appropiate pieces.
 - `getEchoString()` - Returns the currently assigned echo template.
 
@@ -73,6 +85,8 @@ ConsoleAdaptor
 
 Fancier version of EchoAdaptor that echos logs with color and better default formatting
 
+- `__construct($minimumLevel = LogLevel::DEBUG)`
+
 - `setTextColor($levels, $color)` - Set the color used for the level tag in logs. Color codes can be accessed through the Logger\AsciiCodes class. $levels can be either a string for a single log level, or an array of levels.
 
 FileAdaptor
@@ -80,10 +94,13 @@ FileAdaptor
 
 Saves logs to files.
 
-- `__construct($filename)`
-- `fileLogLevels($levels, $filename)` - Save specific log levels to separate files. Eg: `fileLogLevels(['emergancy', 'alert'], 'the_world_is_ending.log');`
-- `disableLogLevels($levels)` - Disable saving specific log levels. Eg: `disableLogLevels(['notice', 'info', 'debug']);`
+- `__construct($file, $minimumLevel = LogLevel::DEBUG)`
+
+- `setLogLevelFile($levels, $filename)` - Save specific log levels to separate files. Eg: `fileLogLevels(['emergancy', 'alert'], 'the_world_is_ending.log');`
+- `getLogLevelFiles()` - Returns array of current filenames for a level. The array is keyed to the different log levels. An empty value means it uses the default file.
+- `separateLogFiles()` - Separates all log levels to their own files.
 - `setDefaultFile($filename)` - Set the default file if a specific file hasn't been defined by fileLogLevels(). The constructor calls this with the filename it's given.
+- `getDefaultFile()` - Returns current default file.
 
 License
 -------
