@@ -55,6 +55,27 @@ class Logger implements LoggerInterface
     }
 
     /**
+     * Retrieve array of current adaptors
+     *
+     * @return array
+     */
+    public function getAdaptors()
+    {
+        return $this->adaptors;
+    }
+
+    /**
+     * Determines if a string is a valid log level
+     *
+     * @param  string  $level Log level to check
+     * @return boolean
+     */
+    public static function isLogLevel($level)
+    {
+        return array_key_exists($level, self::$levels);
+    }
+
+    /**
      * System is unusable.
      *
      * @param string $message
@@ -171,7 +192,7 @@ class Logger implements LoggerInterface
      */
     public function log($level, $message, array $context = array())
     {
-        if (!array_key_exists($level, self::$levels)) {
+        if (!self::isLogLevel($level)) {
             throw new InvalidArgumentException('Unknown security level');
         }
 
@@ -186,98 +207,9 @@ class Logger implements LoggerInterface
 
         // Send data to adaptor(s)
         foreach ($this->adaptors as $adaptor) {
-            $adaptor->write($level, $message, $context);
+            if ($adaptor->isHandling($level)) {
+                $adaptor->write($level, $message, $context);
+            }
         }
-    }
-
-    /**
-     * Register the error handler in Logger for PHP errors
-     */
-    public function registerErrorHandler()
-    {
-        set_error_handler(array($this, 'PHPErrorHandler'));
-    }
-
-    /**
-     * Register the shutdown handler in Logger for critical PHP failures
-     */
-    public function registerShutdownHandler()
-    {
-        register_shutdown_function(array($this, 'PHPShutdownHandler'));
-    }
-
-    /**
-     * Register the exception handler in Logger for unhandled PHP exceptions
-     */
-    public function registerExceptionHandler()
-    {
-        set_exception_handler(array($this, 'PHPExceptionHandler'));
-    }
-
-    /**
-     * Logger provided error handler
-     */
-    public function PHPErrorHandler($error_level, $error_message, $error_file, $error_line, $error_context)
-    {
-        $message = $error_message . ' | File: {file} | Ln: {line}';
-        $context = array(
-            'file' => $error_file,
-            'line' => $error_line
-        );
-
-        switch ($error_level) {
-            case E_USER_ERROR:
-                // no break
-            case E_RECOVERABLE_ERROR:
-                $this->error($message, $context);
-                break;
-            case E_WARNING:
-                // no break
-            case E_USER_WARNING:
-                $this->warning($message, $context);
-                break;
-            case E_NOTICE:
-                // no break
-            case E_USER_NOTICE:
-                $this->notice($message, $context);
-                break;
-            case E_STRICT:
-                $this->debug($message, $context);
-                break;
-            default:
-                $this->warning($message, $context);
-        }
-        return;
-    }
-
-    /**
-     * Logger provided shutdown handler
-     */
-    public function PHPShutdownHandler()
-    {
-        session_write_close();
-        if ($lasterror = error_get_last()) {
-            $message = $lasterror['message'] . ' | File: {file} | Ln: {line}';
-            $context = array(
-                'file' => $lasterror['file'],
-                'line' => $lasterror['line']
-            );
-            $this->critical($message, $context);
-        }
-    }
-
-    /**
-     * Logger provided uncaught Exception handler
-     */
-    public function PHPExceptionHandler($exception)
-    {
-        session_write_close();
-        $message = $exception->getMessage() . ' | File: {file} | Ln: {line} | ST: {stacktrace}';
-        $context = array(
-            'file' => $exception->getFile(),
-            'line' => $exception->getLine(),
-            'stacktrace' => $exception->getTraceAsString()
-        );
-        $this->critical($message, $context);
     }
 }
