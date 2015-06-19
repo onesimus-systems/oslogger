@@ -11,10 +11,24 @@ namespace Onesimus\Logger;
 
 use \Psr\Log\LogLevel;
 use \Psr\Log\LoggerInterface;
+use \Psr\Log\InvalidArgumentException;
 
 class Logger implements LoggerInterface
 {
-    protected $adaptors;
+    // Array of adaptors to save logs
+    protected $adaptors = array();
+
+    // Array of log levels with int values
+    public static $levels = array(
+        LogLevel::EMERGENCY => 0,
+        LogLevel::ALERT     => 1,
+        LogLevel::CRITICAL  => 2,
+        LogLevel::ERROR     => 3,
+        LogLevel::WARNING   => 4,
+        LogLevel::NOTICE    => 5,
+        LogLevel::INFO      => 6,
+        LogLevel::DEBUG     => 7
+    );
 
     /**
      * Constructor function
@@ -27,7 +41,7 @@ class Logger implements LoggerInterface
         if (!$adaptor) {
             $adaptor = new Adaptors\NullAdaptor();
         }
-        $this->adaptors = [$adaptor];
+        $this->adaptors = array($adaptor);
     }
 
     /**
@@ -157,6 +171,10 @@ class Logger implements LoggerInterface
      */
     public function log($level, $message, array $context = array())
     {
+        if (!array_key_exists($level, self::$levels)) {
+            throw new InvalidArgumentException('Unknown security level');
+        }
+
         $message = (string) $message;
         $replace = array();
 

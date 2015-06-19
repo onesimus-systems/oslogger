@@ -100,11 +100,12 @@ class LoggerTest extends \PHPUnit_Framework_TestCase
         $logger->debug('Message contents');
     }
 
-    public function testGenericLogFunction()
+    /**
+     * @expectedException Psr\Log\InvalidArgumentException
+     */
+    public function testUndefinedLogLevel()
     {
-        $this->expectOutputString('custom: Message contents');
-        $echo = new Adaptors\EchoAdaptor('{level}: {message}');
-        $logger = new Logger($echo);
+        $logger = new Logger();
         $logger->log('custom', 'Message contents');
     }
 

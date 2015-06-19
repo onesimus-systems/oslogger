@@ -11,21 +11,28 @@
  */
 namespace Onesimus\Logger\Adaptors;
 
+use \Onesimus\Logger\Logger;
+
+use \Psr\Log\LogLevel;
+
 class FileAdaptor implements AdaptorInterface
 {
     // File to use if a specific loglevel isn't defined
-    protected $fallbackFile;
+    protected $fallbackFile = '';
+
+    // Minimum log level to save
+    protected $logLevelThreshold = LogLevel::DEBUG;
 
     // Files to use for each log level
     protected $filenameLevels = array(
-        'emergency' => '',
-        'alert' => '',
-        'critical' => '',
-        'error' => '',
-        'warning' => '',
-        'notice' => '',
-        'info' => '',
-        'debug' => ''
+        LogLevel::EMERGENCY => '',
+        LogLevel::ALERT     => '',
+        LogLevel::CRITICAL  => '',
+        LogLevel::ERROR     => '',
+        LogLevel::WARNING   => '',
+        LogLevel::NOTICE    => '',
+        LogLevel::INFO      => '',
+        LogLevel::DEBUG     => ''
     );
 
     public function __construct($file = '')
@@ -48,6 +55,16 @@ class FileAdaptor implements AdaptorInterface
         foreach ($level as $loglevel) {
             $this->filenameLevels[$loglevel] = $filename;
         }
+    }
+
+    /**
+     * Set minimum threshold a log must meet to be saved
+     *
+     * @param string $level Log level to set as threshold
+     */
+    public function setLevelThreshold($level = LogLevel::DEBUG)
+    {
+        $this->logLevelThreshold = $level;
     }
 
     /**
@@ -80,7 +97,13 @@ class FileAdaptor implements AdaptorInterface
      */
     public function write($level, $message, array $context = array())
     {
+        // Return for disabled levels
         if ($this->filenameLevels[$level] === false) {
+            return true;
+        }
+
+        // Return for logs below threshold
+        if (Logger::$levels[$this->logLevelThreshold] < Logger::$levels[$level]) {
             return true;
         }
 
