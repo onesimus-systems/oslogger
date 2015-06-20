@@ -14,6 +14,8 @@ namespace Onesimus\Logger\Adaptors;
 use RuntimeException;
 use \Psr\Log\LogLevel;
 
+use \Onesimus\Logger\Formatter\LineFormatter;
+
 class FileAdaptor extends AbstractAdaptor
 {
     // File to use if a specific loglevel isn't defined
@@ -41,6 +43,9 @@ class FileAdaptor extends AbstractAdaptor
     {
         $this->setDefaultFile($file);
         $this->setLevel($level);
+
+        $formatter = new LineFormatter("{date}: [{level}] Message: {message}\n");
+        $this->setFormatter($formatter);
     }
 
     /**
@@ -71,10 +76,10 @@ class FileAdaptor extends AbstractAdaptor
      * Convenience function to make each log level go to a separate file.
      * It uses the directory name of the current default file.
      */
-    public function separateLogFiles()
+    public function separateLogFiles($ext = '.txt')
     {
         foreach ($this->filenameLevels as $level => $filename) {
-            $this->setLogLevelFile($level, $level.'.txt');
+            $this->setLogLevelFile($level, $level.$ext);
         }
     }
 
@@ -104,7 +109,8 @@ class FileAdaptor extends AbstractAdaptor
     public function write($level, $message, array $context = array())
     {
         $filename = $this->filenameLevels[$level] ?: $this->defaultFile;
-        $message = date($this->dateFormat) . ' | ' . strtoupper($level) . ' | Message: ' . $message.PHP_EOL;
+        $context = array('__context' => $context);
+        $log = $this->format($level, $message, $context);
         $logDir = dirname($filename);
 
         // Error are suppressed because an Exception will be thrown instead
@@ -114,11 +120,11 @@ class FileAdaptor extends AbstractAdaptor
             }
         }
 
-        if (@file_put_contents($filename, $message, FILE_APPEND | LOCK_EX) === false) {
+        if (@file_put_contents($filename, $log, FILE_APPEND | LOCK_EX) === false) {
             throw new RuntimeException('Failed to write log file. Please check permissions.');
         }
 
-        $this->setLastLogLine($message);
+        $this->setLastLogLine($log);
 
         return true;
     }

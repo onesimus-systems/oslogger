@@ -16,20 +16,14 @@
  */
 namespace Onesimus\Logger\Adaptors;
 
-use \ReflectionClass;
-use \ReflectionProperty;
-use \ReflectionException;
-
 use \Psr\Log\LogLevel;
 
 use \Onesimus\Logger\Logger;
+use \Onesimus\Logger\Formatter\ChromeLoggerFormatter;
 
 class ChromeLoggerAdaptor extends AbstractAdaptor
 {
     protected $headerName = 'X-ChromeLogger-Data';
-
-    // Keeps track of processed objects
-    protected $_processed = array();
 
     // Keep track of backtraces
     protected $backtraces = array();
@@ -65,6 +59,11 @@ class ChromeLoggerAdaptor extends AbstractAdaptor
         LogLevel::DEBUG     => ''
     );
 
+    public function __construct()
+    {
+        $this->setFormatter(new ChromeLoggerFormatter());
+    }
+
     /**
      * Write logs to the void
      *
@@ -92,7 +91,7 @@ class ChromeLoggerAdaptor extends AbstractAdaptor
         }
 
         $this->json['rows'] []= array(
-            $this->formatObject($message),
+            $this->format('', $message, array('__context'=>$context)),
             $backtraceLine,
             $this->logLevelMappings[$level]
         );
@@ -104,115 +103,6 @@ class ChromeLoggerAdaptor extends AbstractAdaptor
     public function logBacktrace($onoff)
     {
         $this->logBacktrace = $onoff;
-    }
-
-    /**
-     * Format objects into JSON objects
-     *
-     * Borrowed from:
-     * https://github.com/ccampbell/chromephp/blob/c3c297615d48ae5b2a86a82311152d1ed095fcef/ChromePhp.php#L283
-     *
-     * @param  mixed $object
-     * @return mixed
-     */
-    protected function formatObject($object)
-    {
-        if (!is_object($object)) {
-            return $object;
-        }
-
-        //Mark this object as processed so we don't convert it twice and it
-        //Also avoid recursion when objects refer to each other
-        $this->_processed[] = $object;
-
-        $object_as_array = array();
-
-        // first add the class name
-        $object_as_array['___class_name'] = get_class($object);
-
-        // loop through object vars
-        $object_vars = get_object_vars($object);
-
-        foreach ($object_vars as $key => $value) {
-            // same instance as parent object
-            if ($value === $object || in_array($value, $this->_processed, true)) {
-                $value = 'recursion - parent object [' . get_class($value) . ']';
-            }
-            $object_as_array[$key] = $this->formatObject($value);
-        }
-
-        $reflection = new ReflectionClass($object);
-
-        // loop through the properties and add those
-        foreach ($reflection->getProperties() as $property) {
-            // if one of these properties was already added above then ignore it
-            if (array_key_exists($property->getName(), $object_vars)) {
-                continue;
-            }
-
-            $type = $this->getPropertyKey($property);
-            if (version_compare(PHP_VERSION, '5.3.0', '>=')) {
-                $property->setAccessible(true);
-            }
-
-            try {
-                $value = $property->getValue($object);
-            } catch (ReflectionException $e) {
-                $value = 'only PHP 5.3 can access private/protected properties';
-            }
-
-            // same instance as parent object
-            if ($value === $object || in_array($value, $this->_processed, true)) {
-                $value = 'recursion - parent object [' . get_class($value) . ']';
-            }
-
-            // Next line changed from original project
-            $object_as_array[$type] = $this->formatObjectHandleArray($value);
-        }
-
-        return array($object_as_array);
-    }
-
-    /**
-     * Prosesses array values
-     *
-     * @param  mixed $value
-     * @return mixed
-     */
-    protected function formatObjectHandleArray($value)
-    {
-        if (is_array($value)) {
-            $objs = array();
-            foreach ($value as $key => $value2) {
-                $objs[$key] = $this->formatObject($value2);
-            }
-            return $objs;
-        } else {
-            return $this->formatObject($value);
-        }
-    }
-
-    /**
-     * Return description string of object property
-     *
-     * Borrowed from:
-     * https://github.com/ccampbell/chromephp/blob/c3c297615d48ae5b2a86a82311152d1ed095fcef/ChromePhp.php#L347
-     *
-     * @param  ReflectionProperty $property
-     * @return string
-     */
-    protected function getPropertyKey(ReflectionProperty $property)
-    {
-        $static = $property->isStatic() ? ' static' : '';
-        if ($property->isPublic()) {
-            return 'public' . $static . ' ' . $property->getName();
-        }
-        if ($property->isProtected()) {
-            return 'protected' . $static . ' ' . $property->getName();
-        }
-        if ($property->isPrivate()) {
-            return 'private' . $static . ' ' . $property->getName();
-        }
     }
 
     /**

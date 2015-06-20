@@ -255,15 +255,6 @@ class Logger implements LoggerInterface
             throw new InvalidArgumentException('Unknown security level');
         }
 
-        $message = (string) $message;
-        $replace = array();
-
-        // Interpolate context values
-        foreach ($context as $key => $data) {
-            $replace['{'.$key.'}'] = $data;
-        }
-        $message = strtr($message, $replace);
-
         // Send data to adaptor(s)
         foreach ($this->adaptors as $adaptor) {
             if ($adaptor->isHandling($level)) {

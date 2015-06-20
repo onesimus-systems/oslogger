@@ -12,13 +12,12 @@
 namespace Onesimus\Logger\Adaptors;
 
 use \Onesimus\Logger\AsciiCodes;
+use \Onesimus\Logger\Formatter\LineFormatter;
 
 use \Psr\Log\LogLevel;
 
 class ConsoleAdaptor extends AbstractAdaptor
 {
-    protected $templateString;
-
     protected $defaultColor = AsciiCodes::FG_COLOR_WHITE;
 
     protected $levelColors = array(
@@ -35,7 +34,9 @@ class ConsoleAdaptor extends AbstractAdaptor
     public function __construct($level = LogLevel::DEBUG)
     {
         $this->setLevel($level);
-        $this->templateString = "{date}: {color}{levelU}".AsciiCodes::RESET_FG_COLOR.": {message}\n";
+
+        $formatter = new LineFormatter("{date}: {color}{levelU}".AsciiCodes::RESET_FG_COLOR.": {message}\n");
+        $this->setFormatter($formatter);
     }
 
     /**
@@ -70,14 +71,12 @@ class ConsoleAdaptor extends AbstractAdaptor
             $color = $this->levelColors[$level];
         }
 
-        $replacements = array(
-            '{level}' => $level,
-            '{levelU}' => strtoupper($level),
-            '{message}' => $message,
-            '{date}' => date($this->dateFormat),
-            '{color}' => $color
+        $context = array(
+            '__context' => $context,
+            'color' => $color
         );
-        $log = strtr($this->templateString, $replacements);
+
+        $log = $this->format($level, $message, $context);
         $this->setLastLogLine($log);
         echo $log;
     }

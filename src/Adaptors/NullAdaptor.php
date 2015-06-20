@@ -24,6 +24,6 @@ class NullAdaptor extends AbstractAdaptor
      */
     public function write($level, $message, array $context = array())
     {
-        $this->setLastLogLine($message);
+        // NOOP
     }
 }
