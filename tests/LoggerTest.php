@@ -116,7 +116,7 @@ class LoggerTest extends \PHPUnit_Framework_TestCase
 
     public function testUncaughtExceptionHandler()
     {
-        $this->expectOutputRegex("/^critical: Method not defined \| File: [\w\s\/\.\-]+\| Ln: \d{1,4} \| ST: (.|\n)+$/");
+        $this->expectOutputRegex("/^critical: Method not defined \| File: [\w\s\/\.\-]+\| Ln: \d{1,4} \| ST: (.|\\n|\\r)+$/");
         $echo = new Adaptors\EchoAdaptor('debug', '{level}: {message}');
         $logger = new Logger($echo);
         $handlers = new ErrorHandler($logger);
