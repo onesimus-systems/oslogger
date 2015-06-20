@@ -54,7 +54,7 @@ class FileAdaptor extends AbstractAdaptor
         $dir = dirname($this->defaultFile);
 
         if (!is_array($level)) {
-            $level = [$level];
+            $level = array($level);
         }
 
         foreach ($level as $loglevel) {

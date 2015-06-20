@@ -47,7 +47,7 @@ class ConsoleAdaptor extends AbstractAdaptor
     public function setTextColor($level, $color)
     {
         if (!is_array($level)) {
-            $level = [$level];
+            $level = array($level);
         }
 
         foreach ($level as $loglevel) {
