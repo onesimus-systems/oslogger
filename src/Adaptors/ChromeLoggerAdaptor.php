@@ -80,8 +80,9 @@ class ChromeLoggerAdaptor extends AbstractAdaptor
 
         $backtraceLine = '';
         if ($this->logBacktrace) {
-            $backtrace = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 1);
-            $backtraceLine = "{$backtrace[0]['file']} : {$backtrace[0]['line']}";
+            $backtrace = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 3);
+            $backtrace = array_pop($backtrace);
+            $backtraceLine = "{$backtrace['file']} : {$backtrace['line']}";
         }
 
         if (in_array($backtraceLine, $this->backtraces)) {
