@@ -1,6 +1,8 @@
 OSLogger
 --------
 
+[![Build Status](https://travis-ci.org/onesimus-systems/oslogger.svg)](https://travis-ci.org/onesimus-systems/oslogger)
+
 OSLogger is a PSR3 compatible, modularized logger. It allows for multiple logging targets through the use of adaptors.
 
 Requirements
