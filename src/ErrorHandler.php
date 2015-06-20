@@ -9,9 +9,15 @@
  */
 namespace Onesimus\Logger;
 
+use \Psr\Log\LogLevel;
+
 class ErrorHandler
 {
     protected $logger;
+
+    protected $shutdownLogLevel = LogLevel::CRITICAL;
+
+    protected $exceptionLogLevel = LogLevel::CRITICAL;
 
     public function __construct(Logger $logger)
     {
@@ -29,17 +35,19 @@ class ErrorHandler
     /**
      * Register the shutdown handler in Logger for critical PHP failures
      */
-    public function registerShutdownHandler()
+    public function registerShutdownHandler($loglevel = LogLevel::CRITICAL)
     {
         register_shutdown_function(array($this, 'PHPShutdownHandler'));
+        $this->shutdownLogLevel = $loglevel;
     }
 
     /**
      * Register the exception handler in Logger for unhandled PHP exceptions
      */
-    public function registerExceptionHandler()
+    public function registerExceptionHandler($loglevel = LogLevel::CRITICAL)
     {
         set_exception_handler(array($this, 'PHPExceptionHandler'));
+        $this->exceptionLogLevel = $loglevel;
     }
 
     /**
@@ -90,7 +98,7 @@ class ErrorHandler
                 'file' => $lasterror['file'],
                 'line' => $lasterror['line']
             );
-            $this->logger->critical($message, $context);
+            $this->logger->log($this->shutdownLogLevel, $message, $context);
         }
     }
 
@@ -106,6 +114,6 @@ class ErrorHandler
             'line' => $exception->getLine(),
             'stacktrace' => $exception->getTraceAsString()
         );
-        $this->logger->critical($message, $context);
+        $this->logger->log($this->exceptionLogLevel, $message, $context);
     }
 }

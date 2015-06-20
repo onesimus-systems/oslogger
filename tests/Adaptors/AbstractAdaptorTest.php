@@ -5,6 +5,11 @@ use \Psr\Log\LogLevel;
 
 class NewAdaptor extends Adaptors\AbstractAdaptor
 {
+    public function __construct()
+    {
+        $this->setFormatter(new Formatter\LineFormatter(''));
+    }
+
     public function write($l, $m, array $c = array())
     {
         // NOOP

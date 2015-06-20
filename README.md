@@ -10,6 +10,19 @@ Requirements
 
 - PHP >= 5.3.0
 
+Features
+--------
+
+- Quick and easy setup
+- [PSR-3](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-3-logger-interface.md) compliant
+- Multiple adaptors:
+    - Files
+    - Console
+    - Echo
+    - Null
+    - [Chrome Logger](https://craig.is/writing/chrome-logger)
+- Set minimum and maximum handled log level for an adaptor
+
 Usage
 -----
 
@@ -26,7 +39,7 @@ $logger->error("Here's a message with {placeholders}", array('placeholders' => '
 // per PSR3 spec.
 ```
 
-If you don't want to actually log anything but don't want to add conditional logging to your application, you can use a NullAdaptor or simple not provide an adaptor to the Logger constructor (a NullAdaptor is made by the class at construction if one isn't provided).
+If you don't want to actually log anything but don't want to add conditional logging to your application, you can use a NullAdaptor or simple not provide an adaptor to the Logger constructor (a NullAdaptor is made by the object at construction if one isn't provided).
 
 Multiple adaptors can be added to the same logger by calling `Logger::addAdaptor($adaptor)`:
 
@@ -35,17 +48,17 @@ $adaptor2 = new \Onesimus\Logger\Adaptors\EchoAdaptor();
 $logger->addAdaptor($adaptor2);
 ```
 
-When a log is generated it will be sent to all registered logging destinations. So you can have multiple FileAdaptors logging to separate places, a FileAdaptor and database adaptor, what ever you want.
+When a log is generated it will be sent to all registered adapters that are set to handle the particular log level. So you can have multiple FileAdaptors logging to separate places, a FileAdaptor and database adaptor, what ever you want. You can also have logs above or below a certain threshold log to one place and all logs to another. You can completely customize how the logger works for you.
 
 Special Handlers
 ----------------
 
-OSLogger comes with builtin handlers for PHP errors, shutdowns (only does something if error_get_last() returns anything), and uncaught exceptions. If you wish to use any of these, create a new `Logger\ErrorHandler` object and call the methods `registerErrorHandler()`, `registerShutdownHandler()`, or `registerExceptionHandler()` and pass in a Logger object. You may use all or non and of course you can use your own handlers by call the appropiate PHP functions. The handlers will take the errors or exceptions and log them using an appropiate log level.
+OSLogger comes with builtin handlers for PHP errors, shutdowns (only does something if error_get_last() returns anything), and uncaught exceptions. If you wish to use any of these, create a new `Logger\ErrorHandler` object and call the methods `registerErrorHandler()`, `registerShutdownHandler($loglevel)`, or `registerExceptionHandler($loglevel)` and pass in a Logger object. The handlers will take the errors or exceptions and log them using an appropiate log level.
 
 Handler log levels:
 
-- Shutdown: All are `critical`
-- Exception: All are `critical`
+- Shutdown: All are `critical` (unless specified otherwise)
+- Exception: All are `critical` (unless specified otherwise)
 - Errors:
     - E_USER_ERROR, E_RECOVERABLE_ERROR are `error`
     - E_USER_WARNING, E_WARNING are `warning`
@@ -57,33 +70,31 @@ Note: The shutdown handler will only do something if the function error_get_last
 Adaptors (\Onesimus\Logger\Adaptors)
 ------------------------------------
 
-All Adaptors
-------------
+###All Adaptors
 
 - `isHandling($level)` - Check if the adaptor handles logs at the given level.
-- `setLevel($level = LogLevel::DEBUG)` - Set the minimum level handled by the adaptor.
+- `setLevel($min, $max)` - Set the min/max level handled by the adaptor. If you want to set only the max, pass `null` as the first argument.
 - `setDateFormat($format)` - Set the date format used in logs.
 - `getDateFormat()` - Get the date format used in logs.
 - `restoreDateFormat()` - Sets date format to the default "Y-m-d H:i:s T".
 - `getLastLogLine()` - Returns last log line written.
+- `setName($name)` - Name of adaptor used by Logger, set before adding to a Logger object.
+- `getName()` - Returns name of adaptor
 
-NullAdaptor
------------
+###NullAdaptor
 
 Logging blackhole. All logs are thrown away and never seen again. Saves to /dev/null
 
-EchoAdaptor
------------
+###EchoAdaptor
 
 Echo all messages. That's all.
 
-- `__construct($minimumLevel = LogLevel::DEBUG, $echoStr = "{date} [{level}] Message: {message}\n")`
+- `__construct($minimumLevel = LogLevel::DEBUG, $echoStr = "")` - $echoStr will default to "{date}: [{level}] Message: {message}\n"
 
-- `setEchoString($string)` - Sets the template used to echo log messages. Use the placeholders {message}, {level}, and {levelU} (uppercase level) to place the appropiate pieces.
+- `setEchoString($string)` - Sets the template used to echo log messages. See the Placeholders section.
 - `getEchoString()` - Returns the currently assigned echo template.
 
-ConsoleAdaptor
---------------
+###ConsoleAdaptor
 
 Fancier version of EchoAdaptor that echos logs with color and better default formatting
 
@@ -91,8 +102,7 @@ Fancier version of EchoAdaptor that echos logs with color and better default for
 
 - `setTextColor($levels, $color)` - Set the color used for the level tag in logs. Color codes can be accessed through the Logger\AsciiCodes class. $levels can be either a string for a single log level, or an array of levels.
 
-FileAdaptor
------------
+###FileAdaptor
 
 Saves logs to files.
 
@@ -100,9 +110,25 @@ Saves logs to files.
 
 - `setLogLevelFile($levels, $filename)` - Save specific log levels to separate files. Eg: `fileLogLevels(['emergancy', 'alert'], 'the_world_is_ending.log');`
 - `getLogLevelFiles()` - Returns array of current filenames for a level. The array is keyed to the different log levels. An empty value means it uses the default file.
-- `separateLogFiles()` - Separates all log levels to their own files.
+- `separateLogFiles($ext = '.txt')` - Separates all log levels to their own files. $ext is the file extension used for the log files.
 - `setDefaultFile($filename)` - Set the default file if a specific file hasn't been defined by fileLogLevels(). The constructor calls this with the filename it's given.
 - `getDefaultFile()` - Returns current default file.
+
+###ChromeLoggerAdaptor
+
+Sends logs to Chrome using the Chrome Logger extension. Website: [Chrome Logger](https://craig.is/writing/chrome-logger)
+
+- `logBacktrace($onoff)` - Record a backtrace (file, line #) in logs. Default: true
+
+Placeholders
+------------
+
+Some adaptors allow a customized string pattern used when making logs. When this is available, a few placeholders can be used. Placeholders are case-sensative.
+
+- `{level}` - Log level in all lowercase
+- `{levelU}` - Log level in all uppercase
+- `{message}` - Log message or formatted string for objects
+- `{date}` - Datetime of log
 
 License
 -------

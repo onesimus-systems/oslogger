@@ -17,7 +17,7 @@ use \Onesimus\Logger\Adaptors\AbstractAdaptor;
 
 class Logger implements LoggerInterface
 {
-    const VERSION = "2.2.0";
+    const VERSION = "2.3.0";
 
     // Array of adaptors to save logs
     protected $adaptors = array();
@@ -254,15 +254,6 @@ class Logger implements LoggerInterface
         if (!self::isLogLevel($level)) {
             throw new InvalidArgumentException('Unknown security level');
         }
-
-        $message = (string) $message;
-        $replace = array();
-
-        // Interpolate context values
-        foreach ($context as $key => $data) {
-            $replace['{'.$key.'}'] = $data;
-        }
-        $message = strtr($message, $replace);
 
         // Send data to adaptor(s)
         foreach ($this->adaptors as $adaptor) {

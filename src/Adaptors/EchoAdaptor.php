@@ -13,10 +13,10 @@ namespace Onesimus\Logger\Adaptors;
 
 use \Psr\Log\LogLevel;
 
+use \Onesimus\Logger\Formatter\LineFormatter;
+
 class EchoAdaptor extends AbstractAdaptor
 {
-    protected $echoString = "{date} [{level}] Message: {message}\n";
-
     /**
      * Constructor
      *
@@ -25,24 +25,20 @@ class EchoAdaptor extends AbstractAdaptor
      */
     public function __construct($level = LogLevel::DEBUG, $echoStr = '')
     {
-        if ($echoStr) {
-            $this->echoString = $echoStr;
-        }
+        $echoStr = $echoStr ?: "{date}: [{level}] Message: {message}\n";
+        $formatter = new LineFormatter($echoStr);
+        $this->setFormatter($formatter);
         $this->setLevel($level);
     }
 
     /**
      * Set the echo string
      *
-     * @param string $echoStr Echo pattern with placeholders:
-     *                        {level} replaced with the log level
-     *                        {levelU} replaced with uppercase log level
-     *                        {message} replaced with the log message
-     *                        {date} replaced with the date in $this->dateFormat format
+     * @param string $echoStr Echo pattern
      */
     public function setEchoString($echoStr)
     {
-        $this->echoString = $echoStr;
+        $this->formatter->setPattern($echoStr);
     }
 
     /**
@@ -52,7 +48,7 @@ class EchoAdaptor extends AbstractAdaptor
      */
     public function getEchoString()
     {
-        return $this->echoString;
+        return $this->formatter->getPattern();
     }
 
     /**
@@ -65,13 +61,9 @@ class EchoAdaptor extends AbstractAdaptor
      */
     public function write($level, $message, array $context = array())
     {
-        $replacements = array(
-            '{level}' => $level,
-            '{levelU}' => strtoupper($level),
-            '{message}' => $message,
-            '{date}' => date($this->dateFormat)
-        );
-        $log = strtr($this->echoString, $replacements);
+        $context = array('__context' => $context);
+
+        $log = $this->format($level, $message, $context);
         $this->setLastLogLine($log);
         echo $log;
     }

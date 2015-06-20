@@ -16,7 +16,7 @@ class EchoAdaptorTest extends \PHPUnit_Framework_TestCase
 
     public function testEchoEchoEcho()
     {
-        $this->expectOutputRegex("/{$this->dateRegex} \[info\] Message: Hello\n/");
+        $this->expectOutputRegex("/{$this->dateRegex}: \[info\] Message: Hello\n/");
         $echoAdaptor = new Adaptors\EchoAdaptor();
         $echoAdaptor->write(LogLevel::INFO, 'Hello');
     }

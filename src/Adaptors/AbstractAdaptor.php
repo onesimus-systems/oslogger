@@ -11,6 +11,7 @@
 namespace Onesimus\Logger\Adaptors;
 
 use \Onesimus\Logger\Logger;
+use \Onesimus\Logger\Formatter\AbstractFormatter;
 
 use \Psr\Log\LogLevel;
 
@@ -25,8 +26,8 @@ abstract class AbstractAdaptor implements AdaptorInterface
     // Last log message
     private $lastLogLine = '';
 
-    // Date format for logs
-    protected $dateFormat = 'Y-m-d H:i:s T';
+    // Formatter used by adaptor
+    protected $formatter;
 
     // Adaptor name
     protected $adaptorName = '';
@@ -74,7 +75,9 @@ abstract class AbstractAdaptor implements AdaptorInterface
      */
     public function setDateFormat($format)
     {
-        $this->dateFormat = $format;
+        if ($this->formatter) {
+            $this->formatter->setDateFormat($format);
+        }
     }
 
     /**
@@ -82,7 +85,9 @@ abstract class AbstractAdaptor implements AdaptorInterface
      */
     public function restoreDateFormat()
     {
-        $this->setDateFormat('Y-m-d H:i:s T');
+        if ($this->formatter) {
+            $this->setDateFormat('Y-m-d H:i:s T');
+        }
     }
 
     /**
@@ -92,7 +97,9 @@ abstract class AbstractAdaptor implements AdaptorInterface
      */
     public function getDateFormat()
     {
-        return $this->dateFormat;
+        if ($this->formatter) {
+            return $this->formatter->getDateFormat();
+        }
     }
 
     /**
@@ -133,6 +140,16 @@ abstract class AbstractAdaptor implements AdaptorInterface
     public function getName()
     {
         return $this->adaptorName;
+    }
+
+    protected function setFormatter(AbstractFormatter $formatter)
+    {
+        $this->formatter = $formatter;
+    }
+
+    protected function format($level, $message, $context = array())
+    {
+        return $this->formatter->format($level, $message, $context);
     }
 
     /**
