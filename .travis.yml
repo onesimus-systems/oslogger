@@ -10,7 +10,6 @@ php:
 
 branches:
   only:
-    - master
     - /^release-.*$/
     - develop
 
