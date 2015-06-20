@@ -15,6 +15,8 @@ use \Psr\Log\InvalidArgumentException;
 
 class Logger implements LoggerInterface
 {
+    const VERSION = "2.0.1";
+
     // Array of adaptors to save logs
     protected $adaptors = array();
 
