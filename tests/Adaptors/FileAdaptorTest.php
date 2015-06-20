@@ -32,8 +32,10 @@ class FileAdaptorTest extends \PHPUnit_Framework_TestCase
         $fa = new FileAdaptor('/logs/log.txt');
         $levelFiles = $fa->getLogLevelFiles();
         $this->assertEquals('', $levelFiles[LogLevel::EMERGENCY]);
+
         $fa->setLogLevelFile(LogLevel::EMERGENCY, 'emergency_log.txt');
-        $this->assertEquals('/logs/emergency_log.txt', $fa->getLogLevelFiles()[LogLevel::EMERGENCY]);
+        $levelFiles = $fa->getLogLevelFiles();
+        $this->assertEquals('/logs/emergency_log.txt', $levelFiles[LogLevel::EMERGENCY]);
     }
 
     public function testAutomaticSeparateLevelFilenames()
