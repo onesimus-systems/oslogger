@@ -16,12 +16,19 @@ use \Psr\Log\LogLevel;
 
 abstract class AbstractAdaptor implements AdaptorInterface
 {
-    protected $handleLevel = LogLevel::DEBUG;
+    // Minimum log level to handle
+    private $minimumLevel = 7;
 
-    protected $dateFormat = 'Y-m-d H:i:s T';
+    // Maximum log level to handle
+    private $maximumLevel = 0;
 
+    // Last log message
     private $lastLogLine = '';
 
+    // Date format for logs
+    protected $dateFormat = 'Y-m-d H:i:s T';
+
+    // Adaptor name
     protected $adaptorName = '';
 
     /**
@@ -32,10 +39,11 @@ abstract class AbstractAdaptor implements AdaptorInterface
      */
     public function isHandling($level)
     {
-        if (Logger::isLogLevel($this->handleLevel)) {
-            return Logger::$levels[$this->handleLevel] >= Logger::$levels[$level];
-        }
-        return false;
+        $min = $this->minimumLevel;
+        $max = $this->maximumLevel;
+        $lev = Logger::$levels[$level];
+
+        return ($min >= $lev && $lev >= $max);
     }
 
     /**
@@ -43,9 +51,20 @@ abstract class AbstractAdaptor implements AdaptorInterface
      *
      * @param string $level Log level
      */
-    public function setLevel($level)
+    public function setLevel($min = null, $max = null)
     {
-        $this->handleLevel = $level;
+        // Null for default allows easier calling to set
+        // a maximum level only
+        if (!$min || !Logger::isLogLevel($min)) {
+            $min = LogLevel::DEBUG;
+        }
+
+        if (!$max || !Logger::isLogLevel($max)) {
+            $max = LogLevel::EMERGENCY;
+        }
+
+        $this->minimumLevel = Logger::$levels[$min];
+        $this->maximumLevel = Logger::$levels[$max];
     }
 
     /**

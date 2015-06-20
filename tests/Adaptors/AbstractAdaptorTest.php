@@ -45,20 +45,21 @@ class AbstractAdaptorTest extends \PHPUnit_Framework_TestCase
         $adaptor->setLevel(LogLevel::WARNING);
         $this->assertTrue($adaptor->isHandling(LogLevel::WARNING));
         $this->assertFalse($adaptor->isHandling(LogLevel::NOTICE));
+
+        $adaptor->setLevel(LogLevel::NOTICE, LogLevel::ERROR);
+        $this->assertFalse($adaptor->isHandling(LogLevel::CRITICAL));
+        $this->assertTrue($adaptor->isHandling(LogLevel::ERROR));
+        $this->assertTrue($adaptor->isHandling(LogLevel::WARNING));
+        $this->assertTrue($adaptor->isHandling(LogLevel::NOTICE));
+        $this->assertFalse($adaptor->isHandling(LogLevel::INFO));
     }
 
     public function testSetBadLevel()
     {
         $adaptor = new NewAdaptor();
         $adaptor->setLevel('');
-        $this->assertFalse($adaptor->isHandling(LogLevel::EMERGENCY));
-        $this->assertFalse($adaptor->isHandling(LogLevel::ALERT));
-        $this->assertFalse($adaptor->isHandling(LogLevel::CRITICAL));
-        $this->assertFalse($adaptor->isHandling(LogLevel::ERROR));
-        $this->assertFalse($adaptor->isHandling(LogLevel::WARNING));
-        $this->assertFalse($adaptor->isHandling(LogLevel::NOTICE));
-        $this->assertFalse($adaptor->isHandling(LogLevel::INFO));
-        $this->assertFalse($adaptor->isHandling(LogLevel::DEBUG));
+        $this->assertTrue($adaptor->isHandling(LogLevel::EMERGENCY));
+        $this->assertTrue($adaptor->isHandling(LogLevel::DEBUG));
     }
 
     public function testGetSetDateFormat()
