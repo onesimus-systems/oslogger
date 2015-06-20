@@ -73,7 +73,6 @@ class FileAdaptorTest extends \PHPUnit_Framework_TestCase
     public function testLogLevelFile()
     {
         $fa = new FileAdaptor(__DIR__.'/logs/log.txt');
-        $this->assertEquals('', $fa->getLogLevelFiles()[LogLevel::EMERGENCY]);
         $fa->setLogLevelFile(LogLevel::EMERGENCY, 'emergency_log.txt');
 
         $fa->write(LogLevel::EMERGENCY, 'Hello');
