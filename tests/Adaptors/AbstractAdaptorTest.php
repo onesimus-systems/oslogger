@@ -20,8 +20,17 @@ class AbstractAdaptorTest extends \PHPUnit_Framework_TestCase
 {
     public function testImplements()
     {
-        $consoleAdaptor = new NewAdaptor();
-        $this->assertInstanceOf('\Onesimus\Logger\Adaptors\AdaptorInterface', $consoleAdaptor);
+        $adaptor = new NewAdaptor();
+        $this->assertInstanceOf('\Onesimus\Logger\Adaptors\AdaptorInterface', $adaptor);
+    }
+
+    public function testGetSetAdaptorName()
+    {
+        $adaptor = new NewAdaptor();
+        $this->assertEquals('', $adaptor->getName());
+
+        $adaptor->setName('newadaptor');
+        $this->assertEquals('newadaptor', $adaptor->getName());
     }
 
     public function testDefaultLogLevel()

@@ -23,6 +23,18 @@ class LoggerTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('Onesimus\Logger\Adaptors\NullAdaptor', $adaptors[0]);
     }
 
+    public function testGetSetName()
+    {
+        // Using method
+        $logger = new Logger();
+        $logger->setName('logger1');
+        $this->assertEquals('logger1', $logger->getName());
+
+        // Using constructor
+        $logger2 = new Logger(null, 'logger2');
+        $this->assertEquals('logger2', $logger2->getName());
+    }
+
     public function testAddAdditionalAdaptor()
     {
         $logger = new Logger();
@@ -31,6 +43,27 @@ class LoggerTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals(2, count($adaptors));
         $this->assertInstanceOf('Onesimus\Logger\Adaptors\EchoAdaptor', $adaptors[1]);
+    }
+
+    public function testHasAdaptor()
+    {
+        $null = new Adaptors\NullAdaptor();
+        $null->setName('nulladapt');
+
+        $logger = new Logger($null);
+        $this->assertTrue($logger->hasAdaptor('nulladapt'));
+    }
+
+    public function testRemoveAdaptor()
+    {
+        $null = new Adaptors\NullAdaptor();
+        $null->setName('nulladapt1');
+
+        $logger = new Logger($null);
+        $this->assertTrue($logger->hasAdaptor('nulladapt1'));
+
+        $logger->removeAdaptor('nulladapt1');
+        $this->assertFalse($logger->hasAdaptor('nulladapt1'));
     }
 
     public function testEmergancyLevel()

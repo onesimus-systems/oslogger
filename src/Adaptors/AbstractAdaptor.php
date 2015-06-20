@@ -22,6 +22,8 @@ abstract class AbstractAdaptor implements AdaptorInterface
 
     private $lastLogLine = '';
 
+    protected $adaptorName = '';
+
     /**
      * Checks if the log level is handled with this adaptor
      *
@@ -92,6 +94,26 @@ abstract class AbstractAdaptor implements AdaptorInterface
     protected function setLastLogLine($line)
     {
         $this->lastLogLine = $line;
+    }
+
+    /**
+     * Set adaptor name
+     *
+     * @param string $name
+     */
+    public function setName($name)
+    {
+        $this->adaptorName = $name;
+    }
+
+    /**
+     * Get adaptor name
+     *
+     * @return string
+     */
+    public function getName()
+    {
+        return $this->adaptorName;
     }
 
     /**

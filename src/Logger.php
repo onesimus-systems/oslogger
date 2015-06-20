@@ -13,12 +13,21 @@ use \Psr\Log\LogLevel;
 use \Psr\Log\LoggerInterface;
 use \Psr\Log\InvalidArgumentException;
 
+use \Onesimus\Logger\Adaptors\AbstractAdaptor;
+
 class Logger implements LoggerInterface
 {
     const VERSION = "2.1.0";
 
     // Array of adaptors to save logs
     protected $adaptors = array();
+
+    // Counts number of adaptors during lifetime
+    // This should never decrement
+    protected $adaptorCount = 0;
+
+    // Name of logger
+    protected $name = '';
 
     // Array of log levels with int values
     public static $levels = array(
@@ -38,22 +47,27 @@ class Logger implements LoggerInterface
      * @param Adaptors\AdaptorInterface $adaptor Adaptor to use for logging
      *                            If one isn't given, a NullAdaptor is used
      */
-    public function __construct(Adaptors\AdaptorInterface $adaptor = null)
+    public function __construct(AbstractAdaptor $adaptor = null, $loggerName = '')
     {
         if (!$adaptor) {
             $adaptor = new Adaptors\NullAdaptor();
         }
-        $this->adaptors = array($adaptor);
+        $this->addAdaptor($adaptor);
+        $this->setName($loggerName);
     }
 
     /**
      * Add an adaptor to write logs
      *
-     * @param Adaptors\AdaptorInterface $adaptor Adaptor to add to list
+     * @param AbstractAdaptor $adaptor Adaptor to add to list
      */
-    public function addAdaptor(Adaptors\AdaptorInterface $adaptor)
+    public function addAdaptor(AbstractAdaptor $adaptor)
     {
-        $this->adaptors []= $adaptor;
+        // The key will be the adaptor's name or the next numerical
+        // count if a name is blank
+        $adaptorName = $adaptor->getName() ?: $this->adaptorCount;
+        $this->adaptors[$adaptorName] = $adaptor;
+        $this->adaptorCount++;
     }
 
     /**
@@ -64,6 +78,49 @@ class Logger implements LoggerInterface
     public function getAdaptors()
     {
         return $this->adaptors;
+    }
+
+    /**
+     * Determines if the logger has an adaptor named $name
+     *
+     * @param  string  $name Name of adaptor to look for
+     * @return boolean
+     */
+    public function hasAdaptor($name)
+    {
+        return array_key_exists($name, $this->adaptors);
+    }
+
+    /**
+     * Removes an adaptor from the logger
+     *
+     * @param  string $name Name of adaptor to remove
+     */
+    public function removeAdaptor($name)
+    {
+        if ($this->hasAdaptor($name)) {
+            unset($this->adaptors[$name]);
+        }
+    }
+
+    /**
+     * Set logger name
+     *
+     * @param string $name
+     */
+    public function setName($name)
+    {
+        $this->name = $name;
+    }
+
+    /**
+     * Get logger name
+     *
+     * @return string
+     */
+    public function getName()
+    {
+        return $this->name;
     }
 
     /**

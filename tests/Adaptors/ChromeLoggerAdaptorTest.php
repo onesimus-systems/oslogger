@@ -25,6 +25,13 @@ class ChromeLoggerTest extends \PHPUnit_Framework_TestCase
         $_SERVER['HTTP_USER_AGENT'] = 'OSLogger Test; Chrome/1.0';
     }
 
+    public function testExtendsAndImplements()
+    {
+        $chromeAdaptor = new Adaptors\ChromeLoggerAdaptor();
+        $this->assertInstanceOf('\Onesimus\Logger\Adaptors\AbstractAdaptor', $chromeAdaptor);
+        $this->assertInstanceOf('\Onesimus\Logger\Adaptors\AdaptorInterface', $chromeAdaptor);
+    }
+
     public function testHeaders()
     {
         $handler = new TestChromeAdaptor();
@@ -40,7 +47,7 @@ class ChromeLoggerTest extends \PHPUnit_Framework_TestCase
                     array(
                         'test',
                         '',
-                        'info'
+                        ''
                     ),
                     array(
                         'something bad',
@@ -72,7 +79,7 @@ class ChromeLoggerTest extends \PHPUnit_Framework_TestCase
                     array(
                         'test',
                         '',
-                        'info'
+                        ''
                     ),
                     array(
                         str_repeat('a', 150*1024),

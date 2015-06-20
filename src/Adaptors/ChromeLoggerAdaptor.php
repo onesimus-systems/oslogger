@@ -60,9 +60,9 @@ class ChromeLoggerAdaptor extends AbstractAdaptor
         LogLevel::CRITICAL  => 'error',
         LogLevel::ERROR     => 'error',
         LogLevel::WARNING   => 'warn',
-        LogLevel::NOTICE    => 'warn',
+        LogLevel::NOTICE    => '',
         LogLevel::INFO      => 'info',
-        LogLevel::DEBUG     => 'info'
+        LogLevel::DEBUG     => ''
     );
 
     /**
