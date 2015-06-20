@@ -35,7 +35,7 @@ class ConsoleAdaptor extends AbstractAdaptor
     public function __construct($level = LogLevel::DEBUG)
     {
         $this->setLevel($level);
-        $this->templateString = "{date}: {color}{levelU} ".AsciiCodes::RESET_FG_COLOR.": {message}\n";
+        $this->templateString = "{date}: {color}{levelU}".AsciiCodes::RESET_FG_COLOR.": {message}\n";
     }
 
     /**
