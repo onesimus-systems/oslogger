@@ -58,7 +58,7 @@ class ChromeLoggerFormatter extends AbstractFormatter
             if ($value === $message || in_array($value, $this->_processed, true)) {
                 $value = 'recursion - parent object [' . get_class($value) . ']';
             }
-            $object_as_array[$key] = $this->format('', $value);
+            $object_as_array[$key] = $this->format('', $value, $context);
         }
 
         $reflection = new ReflectionClass($message);
@@ -87,7 +87,7 @@ class ChromeLoggerFormatter extends AbstractFormatter
             }
 
             // Next line changed from original project
-            $object_as_array[$type] = $this->formatObjectHandleArray($value);
+            $object_as_array[$type] = $this->formatObjectHandleArray($value, $context);
         }
 
         return array($object_as_array);
@@ -99,16 +99,16 @@ class ChromeLoggerFormatter extends AbstractFormatter
      * @param  mixed $value
      * @return mixed
      */
-    protected function formatObjectHandleArray($value)
+    protected function formatObjectHandleArray($value, array $context)
     {
         if (is_array($value)) {
             $objs = array();
             foreach ($value as $key => $value2) {
-                $objs[$key] = $this->format('', $value2);
+                $objs[$key] = $this->format('', $value2, $context);
             }
             return $objs;
         } else {
-            return $this->format('', $value);
+            return $this->format('', $value, $context);
         }
     }
 
