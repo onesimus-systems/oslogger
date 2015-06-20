@@ -2,7 +2,7 @@
     "name": "onesimus-systems/oslogger",
     "description": "Simple, modular, PSR-3 compliant logging library.",
     "keywords": ["logging", "psr3", "logs"],
-    "version": "2.3.0",
+    "version": "2.3.1",
     "type": "library",
     "license": "BSD-3-Clause",
 

@@ -17,7 +17,7 @@ use \Onesimus\Logger\Adaptors\AbstractAdaptor;
 
 class Logger implements LoggerInterface
 {
-    const VERSION = "2.3.0";
+    const VERSION = "2.3.1";
 
     // Array of adaptors to save logs
     protected $adaptors = array();
