@@ -17,7 +17,7 @@ use \Psr\Log\LogLevel;
 
 class ConsoleAdaptor extends AbstractAdaptor
 {
-    protected $templateString = '{date}: {color}{levelU}'.AsciiCodes::RESET_FG_COLOR.": {message}\n";
+    protected $templateString;
 
     protected $defaultColor = AsciiCodes::FG_COLOR_WHITE;
 
@@ -35,6 +35,7 @@ class ConsoleAdaptor extends AbstractAdaptor
     public function __construct($level = LogLevel::DEBUG)
     {
         $this->setLevel($level);
+        $this->templateString = "{date}: {color}{levelU} ".AsciiCodes::RESET_FG_COLOR.": {message}\n";
     }
 
     /**
